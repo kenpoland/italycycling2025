@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuscan Gravel Itinerary PWA</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+  header { background: #333; color: #fff; padding: 10px; text-align: center; }
+  .day-card { background: white; margin: 15px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+  button { padding: 10px 15px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #555; }
+  .links a { margin-right: 10px; text-decoration: none; color: #007BFF; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tuscan Gravel Itinerary</h1>
+</header>
+<div id="days"></div>
+<button onclick="addDay()">Add Day</button>
+<button onclick="exportData()">Export</button>
+<input type="file" id="importFile" onchange="importData(event)">
+<script>
+let days = JSON.parse(localStorage.getItem('itineraryDays') || '[]');
+
+function saveDays() {
+  localStorage.setItem('itineraryDays', JSON.stringify(days));
+  renderDays();
+}
+
+function addDay() {
+  days.push({ title: '', notes: '', googleMaps: '', strava: '', gpx: '' });
+  saveDays();
+}
+
+function updateDay(index, field, value) {
+  days[index][field] = value;
+  saveDays();
+}
+
+function renderDays() {
+  const container = document.getElementById('days');
+  container.innerHTML = '';
+  days.forEach((day, i) => {
+    container.innerHTML += `
+      <div class="day-card">
+        <input placeholder="Day title" value="${day.title}" onchange="updateDay(${i}, 'title', this.value)">
+        <textarea placeholder="Notes" onchange="updateDay(${i}, 'notes', this.value)">${day.notes}</textarea>
+        <input placeholder="Google Maps link" value="${day.googleMaps}" onchange="updateDay(${i}, 'googleMaps', this.value)">
+        <input placeholder="Strava link" value="${day.strava}" onchange="updateDay(${i}, 'strava', this.value)">
+        <input placeholder="GPX file link" value="${day.gpx}" onchange="updateDay(${i}, 'gpx', this.value)">
+        <div class="links">
+          ${day.googleMaps ? `<a href="${day.googleMaps}" target="_blank">Google Maps</a>` : ''}
+          ${day.strava ? `<a href="${day.strava}" target="_blank">Strava</a>` : ''}
+          ${day.gpx ? `<a href="${day.gpx}" target="_blank">GPX</a>` : ''}
+        </div>
+      </div>
+    `;
+  });
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(days)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'itinerary.json';
+  a.click();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    days = JSON.parse(e.target.result);
+    saveDays();
+  };
+  reader.readAsText(file);
+}
+
+renderDays();
+</script>
+</body>
+</html>

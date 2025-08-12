@@ -1,87 +1,357 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tuscan Gravel Itinerary PWA</title>
-<link rel="manifest" href="manifest.json">
-<style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
-  header { background: #333; color: #fff; padding: 10px; text-align: center; }
-  .day-card { background: white; margin: 15px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-  input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
-  button { padding: 10px 15px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }
-  button:hover { background: #555; }
-  .links a { margin-right: 10px; text-decoration: none; color: #007BFF; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tuscan Gravel - 7-Day Itinerary (Sep 12–18, 2025)</title>
+  <meta name="description" content="7-day self-guided gravel cycling itinerary for Tuscany (Sep 12–18, 2025). Editable PWA for GitHub Pages." />
+  <!-- Manifest will be created dynamically to make this single-file PWA easy to host -->
+  <link id="manifest-placeholder" rel="manifest" href="#">
+  <style>
+    :root{--bg:#0f172a;--card:#ffffff;--muted:#6b7280;--accent:#0ea5a4}
+    body{font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;margin:0;background:linear-gradient(180deg,#f8fafc,#eef2ff);color:#0f172a}
+    header{background:#083344;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+    header h1{margin:0;font-size:1.05rem}
+    .container{max-width:980px;margin:20px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    .card{background:#fff;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.08);padding:16px}
+    .muted{color:var(--muted)}
+    .day-list{display:flex;flex-direction:column;gap:8px}
+    .day-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid #eef2ff}
+    .tabs{display:flex;gap:8px;margin-top:12px}
+    .tab{padding:8px 10px;border-radius:8px;background:#f1f5f9;cursor:pointer}
+    .tab.active{background:var(--accent);color:#fff}
+    label{display:block;font-weight:600;margin-top:8px}
+    input[type=text],textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid #e6eef6;margin-top:6px}
+    .small{font-size:0.9rem;color:var(--muted)}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    button{background:var(--accent);color:#fff;padding:8px 10px;border:0;border-radius:8px;cursor:pointer}
+    button.secondary{background:#fff;color:var(--accent);border:1px solid #e6eef6}
+    footer{padding:12px;text-align:center;color:var(--muted)}
+    .inline{display:inline-block}
+    .stat{font-weight:700}
+    pre{background:#0b1220;color:#e6eef6;padding:10px;border-radius:8px;overflow:auto}
+    @media(max-width:920px){.grid{grid-template-columns:1fr;}.card.side{order:2}}
+  </style>
 </head>
 <body>
-<header>
-  <h1>Tuscan Gravel Itinerary</h1>
-</header>
-<div id="days"></div>
-<button onclick="addDay()">Add Day</button>
-<button onclick="exportData()">Export</button>
-<input type="file" id="importFile" onchange="importData(event)">
-<script>
-let days = JSON.parse(localStorage.getItem('itineraryDays') || '[]');
+  <header>
+    <div>
+      <h1>Tuscan Gravel — 7-Day (Sep 12–18, 2025)</h1>
+      <div class="small">Self-guided gravel holiday · e-bikes · Strade Bianche · Finish in Pisa</div>
+    </div>
+    <div style="text-align:right">
+      <div class="small">PWA Ready — Editable · Save to device</div>
+      <div style="margin-top:6px"><button id="installBtn" style="display:none">Install</button></div>
+    </div>
+  </header>
 
-function saveDays() {
-  localStorage.setItem('itineraryDays', JSON.stringify(days));
-  renderDays();
-}
+  <main class="container">
+    <div class="grid">
+      <section class="card main">
+        <h2>Overview</h2>
+        <p class="small">Dates: <strong>Fri Sep 12 — Thu Sep 18, 2025</strong> (cycling). Departure flight Fri Sep 19, 06:05 from Pisa. Bikes returned to <strong>Smile &amp; Ride</strong> by <strong>Thu Sep 18, 14:00</strong>. Arrival flight: Dublin → Pisa (08:15 → 11:55)</p>
 
-function addDay() {
-  days.push({ title: '', notes: '', googleMaps: '', strava: '', gpx: '' });
-  saveDays();
-}
+        <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+          <div class="card" style="flex:1">
+            <div class="small">Total distance (planned)</div>
+            <div class="stat" id="total-distance">369 km</div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="small">Total elevation (planned)</div>
+            <div class="stat" id="total-elev">3,150 m</div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="small">Bike return</div>
+            <div class="stat">Smile &amp; Ride — by Thu Sep 18, 14:00</div>
+          </div>
+        </div>
 
-function updateDay(index, field, value) {
-  days[index][field] = value;
-  saveDays();
-}
+        <div class="tabs" role="tablist" style="margin-top:14px">
+          <div class="tab active" data-tab="days">Day-by-day</div>
+          <div class="tab" data-tab="trains">Train backup</div>
+          <div class="tab" data-tab="logistics">Logistics &amp; Flights</div>
+          <div class="tab" data-tab="accom">Accommodations</div>
+        </div>
 
-function renderDays() {
-  const container = document.getElementById('days');
-  container.innerHTML = '';
-  days.forEach((day, i) => {
-    container.innerHTML += `
-      <div class="day-card">
-        <input placeholder="Day title" value="${day.title}" onchange="updateDay(${i}, 'title', this.value)">
-        <textarea placeholder="Notes" onchange="updateDay(${i}, 'notes', this.value)">${day.notes}</textarea>
-        <input placeholder="Google Maps link" value="${day.googleMaps}" onchange="updateDay(${i}, 'googleMaps', this.value)">
-        <input placeholder="Strava link" value="${day.strava}" onchange="updateDay(${i}, 'strava', this.value)">
-        <input placeholder="GPX file link" value="${day.gpx}" onchange="updateDay(${i}, 'gpx', this.value)">
-        <div class="links">
-          ${day.googleMaps ? `<a href="${day.googleMaps}" target="_blank">Google Maps</a>` : ''}
-          ${day.strava ? `<a href="${day.strava}" target="_blank">Strava</a>` : ''}
-          ${day.gpx ? `<a href="${day.gpx}" target="_blank">GPX</a>` : ''}
+        <div id="tab-days" style="margin-top:12px">
+          <div class="day-list" id="dayList"></div>
+        </div>
+
+        <div id="tab-trains" style="display:none;margin-top:12px">
+          <h3>Train backup (accept fully assembled bikes)</h3>
+          <p class="small">Regional trains in Tuscany accept bikes (often for a daily supplement). Stations on route with bike carriage possibilities:</p>
+          <ul>
+            <li>Pisa Centrale</li>
+            <li>Livorno Centrale</li>
+            <li>Follonica</li>
+            <li>Grosseto</li>
+            <li>Empoli</li>
+            <li>Siena (limited regional links)</li>
+            <li>Lucca, Viareggio</li>
+          </ul>
+          <p class="small">Always check Trenitalia regional rules for fully assembled bikes and buy any necessary supplement at the station.</p>
+        </div>
+
+        <div id="tab-logistics" style="display:none;margin-top:12px">
+          <h3>Arrival &amp; Bike Hire</h3>
+          <p class="small">Arrival: <strong>PSA</strong> 11:55 on Fri Sep 12. The <strong>PisaMover</strong> shuttle connects Pisa Airport to Pisa Centrale train station. <strong>Smile &amp; Ride</strong> bike hire is next to Pisa Centrale. Plan ~30–45 minutes from touchdown to bike pick-up (immigration, bags, PisaMover transfer). Book bike hire and battery/lock extras in advance.</p>
+          <h3>Departure</h3>
+          <p class="small">Departure flight Fri Sep 19, 06:05. PisaMover service typically starts at 06:00 — arrange an early taxi from central Pisa if you need to be at the airport earlier than 06:00. If bikes are returned on Thu Sep 18 by 14:00, you will have time to pack and sleep in Pisa.</p>
+        </div>
+
+        <div id="tab-accom" style="display:none;margin-top:12px">
+          <h3>Accommodations (editable)</h3>
+          <div id="accomSummary"></div>
+        </div>
+
+
+      </section>
+
+      <aside class="card side">
+        <h3>Days</h3>
+        <div id="dayNav" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+
+        <h3 style="margin-top:14px">Actions</h3>
+        <div class="actions">
+          <button id="exportBtn">Export JSON</button>
+          <button class="secondary" id="importBtn">Import JSON</button>
+        </div>
+        <input type="file" id="fileInput" style="display:none" accept="application/json" />
+
+        <h4 style="margin-top:12px">Quick edits</h4>
+        <p class="small">Click any day to edit. Edits are saved to your browser (<strong>localStorage</strong>).</p>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:18px">
+      <h2 id="editor-title">Day details</h2>
+      <div id="editor" style="display:grid;grid-template-columns:1fr 320px;gap:12px">
+        <div>
+          <label>Day &amp; Date</label>
+          <input id="day-date" type="text" />
+
+          <label>Route summary</label>
+          <textarea id="route" rows="6"></textarea>
+
+          <label>Distance (km)</label>
+          <input id="distance" type="text" />
+
+          <label>Elevation (m)</label>
+          <input id="elev" type="text" />
+
+          <label>Lunch suggestion</label>
+          <input id="lunch" type="text" />
+
+          <label>Accommodation (name and notes)</label>
+          <input id="accom" type="text" />
+
+          <label>Accommodation check-in/out</label>
+          <input id="accom-times" type="text" />
+
+          <label>Points of interest</label>
+          <textarea id="poi" rows="4"></textarea>
+
+          <label>Swimming / bathing options</label>
+          <input id="water" type="text" />
+
+          <label>Backup train stations</label>
+          <input id="trainsInput" type="text" />
+
+          <label>Bike repair shops</label>
+          <input id="repairs" type="text" />
+
+          <div class="actions">
+            <button id="saveBtn">Save day</button>
+            <button class="secondary" id="resetBtn">Reset day to default</button>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="small">Summary</h4>
+          <div style="background:#fbfbff;padding:10px;border-radius:8px">
+            <div><strong id="sum-day">Day 1 — Sep 12, 2025</strong></div>
+            <div class="small" id="sum-distance">Distance: 45 km · Elevation: 400 m</div>
+            <div style="margin-top:8px" id="sum-accom">Accommodation: Nonna Adriana — check-in 12:00–21:00</div>
+            <div style="margin-top:8px" id="sum-lunch">Lunch: Trattoria example</div>
+            <div style="margin-top:8px" id="sum-poi">POI: Historic walls of Lucca</div>
+          </div>
+
+          <h4 style="margin-top:12px">Notes &amp; logistics</h4>
+          <pre id="notes">Arrival flight 08:15 — 11:55. PisaMover transfer to Pisa Centrale, pick up bikes at Smile &amp; Ride.</pre>
         </div>
       </div>
-    `;
-  });
-}
+    </section>
 
-function exportData() {
-  const blob = new Blob([JSON.stringify(days)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'itinerary.json';
-  a.click();
-}
+  </main>
 
-function importData(event) {
-  const file = event.target.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    days = JSON.parse(e.target.result);
-    saveDays();
-  };
-  reader.readAsText(file);
-}
+  <footer>
+    <div class="small">Tip: use the Export JSON button to save itinerary edits. Host this file on GitHub Pages for a public PWA.</div>
+  </footer>
 
-renderDays();
-</script>
+  <script>
+    // Default itinerary data (editable)
+    const defaultData = {
+      meta:{title:'Tuscan Gravel 7-day',start:'2025-09-12',end:'2025-09-18',arrivalFlight:'DUB→PSA 08:15→11:55',departureFlight:'PSA→DUB 06:05 Sep 19'},
+      settings:{bikeReturn:'Smile & Ride by 2025-09-18 14:00'},
+      days:[
+        {day:1,date:'Fri Sep 12, 2025',route:'Pisa → transfer to Lucca via PisaMover and short coastal lanes then inland quiet roads. Gentle warm-up ride around Lucca city walls and walled countryside (strade bianche access).',distance:45,elev:400,lunch:'Osteria in Lucca near Piazza',accom:'Nonna Adriana — secure bike storage, check-in 12:00–21:00',accomTimes:'Check-in 12:00–21:00 / Check-out 08:00–11:00',poi:'Lucca historic walls, Piazza dell\'Anfiteatro',water:'Public pool in Lucca or short drive to local river spots',trains:'Lucca station (bikes allowed)',repairs:'Cycle Lucca — Via Fillungo 10'},
+        {day:2,date:'Sat Sep 13, 2025',route:'Lucca → Montecarlo → Certaldo. Gravel lanes through olive groves and strade bianche. Moderate rolling, avoid SS roads by sticking to secondary roads.',distance:60,elev:600,lunch:'Agriturismo near Montecarlo',accom:'Casa Sissi — NOTE: NO PLACE TO CHARGE OR PARK BIKE (edit to confirm)',accomTimes:'Check-in 15:00–17:00 / Check-out 09:00–10:00',poi:'Montecarlo vineyards, medieval Certaldo Alta',water:'Small local thermal pool options in countryside (ask host)',trains:'Poggibonsi station nearby',repairs:'Bike Clinic Poggibonsi'},
+        {day:3,date:'Sun Sep 14, 2025',route:'Certaldo → San Gimignano → Siena approach. Strade bianche through countryside, panoramic towers at San Gimignano.',distance:55,elev:500,lunch:'Panini stop below San Gimignano',accom:'San Gimignano — No confirmation on e-bike parking and secure parking (edit to confirm)',accomTimes:'Check-in 15:00–19:00 / Check-out 08:00–10:00',poi:'Towers of San Gimignano, local Vernaccia wine tasting',water:'Small agricultural ponds — not recommended for swimming, use hotel pool',trains:'Poggibonsi-San Gimignano bus to train',repairs:'San Gimignano Bike Service'},
+        {day:4,date:'Mon Sep 15, 2025',route:'San Gimignano → Siena (Villa Socini area). Scenic rolling vineyards but aim for valley routes to limit climbing.',distance:65,elev:700,lunch:'Osteria near Castellina in Chianti',accom:'Villa Socini — Siena (No confirmation on e-bike parking and secure parking). Total price: €92.20',accomTimes:'Sep 15 – Sep 16 · 1 night',poi:'Siena Piazza del Campo, Duomo',water:'Hotel pool at Villa Socini (if available)',trains:'Siena station (limited regional)',repairs:'Siena Bike Workshop'},
+        {day:5,date:'Tue Sep 16, 2025',route:'Siena → Volterra via quieter gravel lanes and secondary roads, gradually heading west. Mixture of compact white roads and paved links.',distance:50,elev:300,lunch:'Lunch in small town en route',accom:'Villa Nencini — Volterra (Borgo Santo Stefano 55)',accomTimes:'Sep 16 – Sep 17',poi:'Etruscan walls of Volterra, alabaster workshops',water:'Natural river swimming spots nearby (ask locals)',trains:'Volterra Poggibonsi bus to train',repairs:'Volterra Bike Repair'},
+        {day:6,date:'Wed Sep 17, 2025',route:'Volterra → Quercianella (coastal turn) — longer transfer to coast then gentle coastal gravel lanes. Aim to drop elevation and ride near sea.',distance:55,elev:450,lunch:'Seafront trattoria near Quercianella',accom:'Quercianella — check property for e-bike charging & secure parking',accomTimes:'Sep 17 – Sep 18',poi:'Coastal cliffs, small fishing harbours',water:'Sea swimming at quiet coves',trains:'Livorno or Quercianella local stops',repairs:'Livorno Cycle Centre'},
+        {day:7,date:'Thu Sep 18, 2025',route:'Quercianella → Pisa (via coastal lanes and cycle paths). Minimal climbing; return to Pisa in time to drop bikes at Smile & Ride by 14:00.',distance:39,elev:200,lunch:'Lunch in Pisa or Marina di Pisa',accom:'Pisa (no overnight required if flying next morning)',accomTimes:'Bike return by 14:00 at Smile & Ride',poi:'Leaning Tower, river Arno riverside',water:'Marina di Pisa beaches for a final dip',trains:'Pisa Centrale',repairs:'Smile & Ride workshop'},
+      ]
+    };
+
+    // persistence helpers
+    const STORAGE_KEY = 'tuscan_gravel_itinerary_v1';
+    function loadData(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){try{return JSON.parse(raw);}catch(e){console.warn('parse fail',e)} }
+      return JSON.parse(JSON.stringify(defaultData));
+    }
+    function saveData(data){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}
+
+    let data = loadData();
+
+    // render daynav and list
+    const dayNav = document.getElementById('dayNav');
+    const dayList = document.getElementById('dayList');
+    const accomSummary = document.getElementById('accomSummary');
+
+    function human(num){return num.toLocaleString();}
+
+    function renderOverviewStats(){
+      const totalDist = data.days.reduce((s,d)=>s+Number(d.distance),0);
+      const totalElev = data.days.reduce((s,d)=>s+Number(d.elev),0);
+      document.getElementById('total-distance').textContent = human(totalDist) + ' km';
+      document.getElementById('total-elev').textContent = human(totalElev) + ' m';
+    }
+
+    function renderLists(){
+      dayNav.innerHTML = '';
+      dayList.innerHTML = '';
+      accomSummary.innerHTML = '';
+      data.days.forEach((d,i)=>{
+        const btn = document.createElement('button'); btn.className='tab'; btn.textContent = 'Day '+d.day; btn.onclick = ()=>openDay(i);
+        dayNav.appendChild(btn);
+
+        const item = document.createElement('div'); item.className='day-item';
+        item.innerHTML = `<div><strong>Day ${d.day}</strong> — <span class=small>${d.date}</span><div class=small>${d.route.slice(0,120)}...</div></div><div class=small>${d.distance} km</div>`;
+        item.onclick = ()=>openDay(i);
+        dayList.appendChild(item);
+
+        const accomDiv = document.createElement('div'); accomDiv.style.marginBottom='8px'; accomDiv.innerHTML = `<strong>Day ${d.day}:</strong> ${d.accom}`;
+        accomSummary.appendChild(accomDiv);
+      });
+      renderOverviewStats();
+    }
+
+    // editor bindings
+    const fields = ['day-date','route','distance','elev','lunch','accom','accom-times','poi','water','trainsInput','repairs'];
+    function openDay(index){
+      const d = data.days[index];
+      document.getElementById('editor-title').textContent = `Day ${d.day} — Edit`;
+      document.getElementById('sum-day').textContent = `Day ${d.day} — ${d.date}`;
+      fields.forEach(id=>{document.getElementById(id).value = d[mapField(id)] || ''});
+      document.getElementById('sum-distance').textContent = `Distance: ${d.distance} km · Elevation: ${d.elev} m`;
+      document.getElementById('sum-accom').textContent = `Accommodation: ${d.accom}`;
+      document.getElementById('sum-lunch').textContent = `Lunch: ${d.lunch}`;
+      document.getElementById('sum-poi').textContent = `POI: ${d.poi}`;
+      currentIndex = index;
+    }
+    function mapField(id){
+      if(id==='day-date')return 'date';
+      if(id==='trainsInput')return 'trains';
+      return id.replace('-','');
+    }
+
+    let currentIndex = 0;
+    document.getElementById('saveBtn').addEventListener('click',()=>{
+      const d = data.days[currentIndex];
+      d.date = document.getElementById('day-date').value;
+      d.route = document.getElementById('route').value;
+      d.distance = Number(document.getElementById('distance').value) || 0;
+      d.elev = Number(document.getElementById('elev').value) || 0;
+      d.lunch = document.getElementById('lunch').value;
+      d.accom = document.getElementById('accom').value;
+      d.accomTimes = document.getElementById('accom-times').value;
+      d.poi = document.getElementById('poi').value;
+      d.water = document.getElementById('water').value;
+      d.trains = document.getElementById('trainsInput').value;
+      d.repairs = document.getElementById('repairs').value;
+      saveData(data);
+      renderLists();
+      openDay(currentIndex);
+      alert('Saved');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click',()=>{
+      if(!confirm('Reset this day to the original default?'))return;
+      data.days[currentIndex] = JSON.parse(JSON.stringify(defaultData.days[currentIndex]));
+      saveData(data); renderLists(); openDay(currentIndex);
+    });
+
+    // export/import
+    document.getElementById('exportBtn').addEventListener('click',()=>{
+      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='tuscan-itinerary-2025.json'; a.click();
+      URL.revokeObjectURL(url);
+    });
+    document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change',(e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const reader = new FileReader(); reader.onload = () =>{
+        try{ data = JSON.parse(reader.result); saveData(data); renderLists(); openDay(0); alert('Imported'); }catch(er){alert('Import failed: '+er)}
+      }; reader.readAsText(f);
+    });
+
+    // tabs
+    document.querySelectorAll('.tabs .tab').forEach(t=>t.addEventListener('click',e=>{
+      document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('active'));
+      e.target.classList.add('active');
+      const name = e.target.dataset.tab;
+      ['days','trains','logistics','accom'].forEach(n=>document.getElementById('tab-'+n).style.display = (n===name)?'block':'none');
+    }));
+
+    // install prompt handling (simple)
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display='inline-block'; });
+    installBtn.onclick = async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); const {outcome} = await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display='none'; }
+
+    // dynamic manifest & service worker (so this single file can act like a PWA)
+    (function registerManifestAndSW(){
+      // create a minimal manifest blob
+      const manifest = {
+        name:'Tuscan Gravel Itinerary',
+        short_name:'TuscanGravel',
+        start_url:'.',
+        display:'standalone',
+        background_color:'#f8fafc',
+        description:'Editable 7-day Tuscan gravel cycling itinerary (Sep 12–18, 2025).',
+        icons:[{src:'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect fill="white" width="100%" height="100%" rx="24"/><text x="50%" y="50%" font-size="48" text-anchor="middle" fill="#0ea5a4" dy="16">TG</text></svg>'), sizes:'192x192', type:'image/svg+xml'}]
+      };
+      const blob = new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+      const url = URL.createObjectURL(blob);
+      document.getElementById('manifest-placeholder').setAttribute('href', url);
+
+      // Service worker content: simple offline caching for this file + assets generated
+      const swCode = `self.addEventListener('install', function(e){e.waitUntil(caches.open('tg-v1').then(c=>c.addAll(['.']))); self.skipWaiting();});
+      self.addEventListener('fetch', function(e){ e.respondWith(caches.match(e.request).then(r=>r || fetch(e.request))); });`;
+      try{
+        const swBlob = new Blob([swCode],{type:'application/javascript'});
+        const swUrl = URL.createObjectURL(swBlob);
+        if('serviceWorker' in navigator){navigator.serviceWorker.register(swUrl).catch(err=>console.warn('SW failed',err));}
+      }catch(e){console.warn('sw create fail',e)}
+    })();
+
+    // init
+    renderLists(); openDay(0);
+
+  </script>
 </body>
 </html>
